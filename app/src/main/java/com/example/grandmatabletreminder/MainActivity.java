@@ -116,21 +116,28 @@ public class MainActivity extends Activity {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
 
-        alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                calendar.getTimeInMillis(),
+        long alarmTime = calendar.getTimeInMillis();
+
+        AlarmManager.AlarmClockInfo alarmClockInfo =
+                new AlarmManager.AlarmClockInfo(
+                        alarmTime,
+                        pendingIntent
+                );
+
+        alarmManager.setAlarmClock(
+                alarmClockInfo,
                 pendingIntent
         );
 
-        String alarmTime = new SimpleDateFormat(
+        String time = new SimpleDateFormat(
                 "HH:mm:ss",
                 Locale.getDefault()
         ).format(calendar.getTime());
 
         textView.setText(
-                "ALARM SCHEDULED\n\n" +
+                "ALARM CLOCK SCHEDULED\n\n" +
                 "Alarm time: " +
-                alarmTime +
+                time +
                 "\n\n" +
                 "Close the app.\n" +
                 "Wait until the alarm time.\n" +
