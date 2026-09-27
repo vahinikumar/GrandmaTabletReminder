@@ -68,11 +68,5 @@ public class MainActivity extends Activity {
                 calendar.getTimeInMillis(),
                 pendingIntent
         );
-
-        textViewMessage();
-    }
-
-    private void textViewMessage() {
-        TextView textView = (TextView) findViewById(android.R.id.content);
     }
 }
