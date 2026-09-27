@@ -18,16 +18,16 @@ public class MainActivity extends Activity {
 
         TextView textView = new TextView(this);
 
-        textView.setText("Grandma Tablet Reminder\n\nAlarm test: 2:05 PM");
+        textView.setText("Scheduling alarm...");
         textView.setTextSize(24);
         textView.setGravity(android.view.Gravity.CENTER);
 
         setContentView(textView);
 
-        scheduleAlarm();
+        scheduleAlarm(textView);
     }
 
-    private void scheduleAlarm() {
+    private void scheduleAlarm(TextView textView) {
 
         AlarmManager alarmManager =
                 (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -54,8 +54,9 @@ public class MainActivity extends Activity {
 
         Calendar calendar = Calendar.getInstance();
 
+        // TEST TIME: 2:10 PM
         calendar.set(Calendar.HOUR_OF_DAY, 14);
-        calendar.set(Calendar.MINUTE, 5);
+        calendar.set(Calendar.MINUTE, 10);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
 
@@ -67,6 +68,11 @@ public class MainActivity extends Activity {
                 AlarmManager.RTC_WAKEUP,
                 calendar.getTimeInMillis(),
                 pendingIntent
+        );
+
+        textView.setText(
+                "Alarm scheduled for:\n\n" +
+                calendar.getTime().toString()
         );
     }
 }
