@@ -15,20 +15,30 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
 
+    private TextView textView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        TextView textView = new TextView(this);
-        textView.setTextSize(24);
+        textView = new TextView(this);
+        textView.setTextSize(22);
         textView.setGravity(android.view.Gravity.CENTER);
         setContentView(textView);
 
-        showReceiverStatus(textView);
-        scheduleAlarm(textView);
+        checkReceiver();
     }
 
-    private void showReceiverStatus(TextView textView) {
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (textView != null) {
+            checkReceiver();
+        }
+    }
+
+    private void checkReceiver() {
 
         long firedTime = getSharedPreferences(
                 "alarm_test",
@@ -39,8 +49,11 @@ public class MainActivity extends Activity {
 
             textView.setText(
                     "Receiver status:\n\n" +
-                    "NOT FIRED YET"
+                    "NOT FIRED YET\n\n" +
+                    "Tap the screen to schedule a new test."
             );
+
+            textView.setOnClickListener(v -> scheduleAlarm());
 
         } else {
 
@@ -52,12 +65,13 @@ public class MainActivity extends Activity {
             textView.setText(
                     "Receiver status:\n\n" +
                     "FIRED!\n\n" +
-                    "Time: " + time
+                    "Receiver time:\n" +
+                    time
             );
         }
     }
 
-    private void scheduleAlarm(TextView textView) {
+    private void scheduleAlarm() {
 
         AlarmManager alarmManager =
                 (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -81,7 +95,10 @@ public class MainActivity extends Activity {
             return;
         }
 
-        Intent intent = new Intent(this, AlarmReceiver.class);
+        Intent intent = new Intent(
+                this,
+                AlarmReceiver.class
+        );
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 this,
@@ -99,31 +116,25 @@ public class MainActivity extends Activity {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
 
-        try {
+        alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.getTimeInMillis(),
+                pendingIntent
+        );
 
-            alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.getTimeInMillis(),
-                    pendingIntent
-            );
+        String alarmTime = new SimpleDateFormat(
+                "HH:mm:ss",
+                Locale.getDefault()
+        ).format(calendar.getTime());
 
-            textView.setText(
-                    "ALARM SCHEDULED\n\n" +
-                    new SimpleDateFormat(
-                            "HH:mm:ss",
-                            Locale.getDefault()
-                    ).format(calendar.getTime()) +
-                    "\n\nOpen this app AFTER the alarm time."
-            );
-
-        } catch (Exception e) {
-
-            textView.setText(
-                    "ALARM ERROR:\n\n" +
-                    e.getClass().getSimpleName() +
-                    "\n\n" +
-                    e.getMessage()
-            );
-        }
+        textView.setText(
+                "ALARM SCHEDULED\n\n" +
+                "Alarm time: " +
+                alarmTime +
+                "\n\n" +
+                "Close the app.\n" +
+                "Wait until the alarm time.\n" +
+                "Then open the app again."
+        );
     }
 }
