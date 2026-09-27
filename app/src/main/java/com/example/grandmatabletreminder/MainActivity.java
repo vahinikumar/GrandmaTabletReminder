@@ -5,6 +5,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.widget.TextView;
 
 import java.util.Calendar;
@@ -17,7 +18,7 @@ public class MainActivity extends Activity {
 
         TextView textView = new TextView(this);
 
-        textView.setText("Grandma Tablet Reminder\n\n7:30 AM alarm is scheduled.");
+        textView.setText("Grandma Tablet Reminder\n\nChecking alarm permission...");
         textView.setTextSize(24);
         textView.setGravity(android.view.Gravity.CENTER);
 
@@ -31,6 +32,16 @@ public class MainActivity extends Activity {
         AlarmManager alarmManager =
                 (AlarmManager) getSystemService(ALARM_SERVICE);
 
+        if (!alarmManager.canScheduleExactAlarms()) {
+
+            Intent intent = new Intent(
+                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+            );
+
+            startActivity(intent);
+            return;
+        }
+
         Intent intent = new Intent(this, AlarmReceiver.class);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
@@ -42,6 +53,7 @@ public class MainActivity extends Activity {
         );
 
         Calendar calendar = Calendar.getInstance();
+
         calendar.set(Calendar.HOUR_OF_DAY, 13);
         calendar.set(Calendar.MINUTE, 34);
         calendar.set(Calendar.SECOND, 0);
@@ -56,5 +68,11 @@ public class MainActivity extends Activity {
                 calendar.getTimeInMillis(),
                 pendingIntent
         );
+
+        textViewMessage();
+    }
+
+    private void textViewMessage() {
+        TextView textView = (TextView) findViewById(android.R.id.content);
     }
 }
