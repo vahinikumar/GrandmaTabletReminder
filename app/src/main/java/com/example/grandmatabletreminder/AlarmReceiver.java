@@ -9,6 +9,18 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+        // Record that the receiver fired
+        context.getSharedPreferences(
+                "alarm_test",
+                Context.MODE_PRIVATE
+        ).edit()
+                .putLong(
+                        "receiver_fired",
+                        System.currentTimeMillis()
+                )
+                .apply();
+
+        // Try to open the reminder screen
         Intent activityIntent = new Intent(
                 context,
                 MainActivity.class
