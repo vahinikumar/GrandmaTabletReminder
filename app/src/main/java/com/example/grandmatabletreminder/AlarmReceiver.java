@@ -22,4 +22,4 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         context.startActivity(activityIntent);
     }
-}s
+}
