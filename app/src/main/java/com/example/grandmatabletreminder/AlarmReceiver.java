@@ -9,13 +9,17 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        long firedTime = System.currentTimeMillis();
+        Intent activityIntent = new Intent(
+                context,
+                MainActivity.class
+        );
 
-        context.getSharedPreferences(
-                "alarm_test",
-                Context.MODE_PRIVATE
-        ).edit()
-                .putLong("receiver_fired", firedTime)
-                .apply();
+        activityIntent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK |
+                Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+        );
+
+        context.startActivity(activityIntent);
     }
-}
+}s
