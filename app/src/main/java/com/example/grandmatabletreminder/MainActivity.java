@@ -1,72 +1,56 @@
 package com.example.grandmatabletreminder;
 
-import android.app.Activity;
-import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.provider.Settings;
-import android.widget.TextView;
+import android.os.Build;
 
-import java.util.Calendar;
-
-public class MainActivity extends Activity {
+public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onReceive(Context context, Intent intent) {
 
-        TextView textView = new TextView(this);
+        String channelId = "tablet_test";
 
-        textView.setText("Grandma Tablet Reminder\n\nChecking alarm permission...");
-        textView.setTextSize(24);
-        textView.setGravity(android.view.Gravity.CENTER);
+        NotificationManager manager =
+                (NotificationManager) context.getSystemService(
+                        Context.NOTIFICATION_SERVICE
+                );
 
-        setContentView(textView);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
-        scheduleAlarm();
-    }
-
-    private void scheduleAlarm() {
-
-        AlarmManager alarmManager =
-                (AlarmManager) getSystemService(ALARM_SERVICE);
-
-        if (!alarmManager.canScheduleExactAlarms()) {
-
-            Intent intent = new Intent(
-                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    "Tablet Reminder Test",
+                    NotificationManager.IMPORTANCE_HIGH
             );
 
-            startActivity(intent);
-            return;
+            channel.setSound(null, null);
+            manager.createNotificationChannel(channel);
         }
 
-        Intent intent = new Intent(this, AlarmReceiver.class);
+        Intent activityIntent = new Intent(context, MainActivity.class);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this,
-                100,
-                intent,
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                200,
+                activityIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT
                         | PendingIntent.FLAG_IMMUTABLE
         );
 
-        Calendar calendar = Calendar.getInstance();
+        android.app.Notification notification =
+                new android.app.Notification.Builder(context, channelId)
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setContentTitle("Grandma Tablet Reminder")
+                        .setContentText("ALARM RECEIVER FIRED")
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true)
+                        .build();
 
-        calendar.set(Calendar.HOUR_OF_DAY, 13);
-        calendar.set(Calendar.MINUTE, 46);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-
-        if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
-            calendar.add(Calendar.DAY_OF_YEAR, 1);
-        }
-
-        alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                calendar.getTimeInMillis(),
-                pendingIntent
-        );
+        manager.notify(200, notification);
     }
 }
