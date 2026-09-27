@@ -17,8 +17,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         TextView textView = new TextView(this);
-
-        textView.setText("Scheduling alarm...");
         textView.setTextSize(24);
         textView.setGravity(android.view.Gravity.CENTER);
 
@@ -32,7 +30,15 @@ public class MainActivity extends Activity {
         AlarmManager alarmManager =
                 (AlarmManager) getSystemService(ALARM_SERVICE);
 
+        if (alarmManager == null) {
+            textView.setText("ERROR:\nAlarmManager is null");
+            return;
+        }
+
         if (!alarmManager.canScheduleExactAlarms()) {
+            textView.setText(
+                    "ERROR:\nExact alarm permission is NOT allowed"
+            );
 
             Intent intent = new Intent(
                     Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
@@ -41,6 +47,8 @@ public class MainActivity extends Activity {
             startActivity(intent);
             return;
         }
+
+        textView.setText("Exact alarm permission: OK\n\nScheduling...");
 
         Intent intent = new Intent(this, AlarmReceiver.class);
 
@@ -56,7 +64,7 @@ public class MainActivity extends Activity {
 
         // TEST TIME: 2:10 PM
         calendar.set(Calendar.HOUR_OF_DAY, 14);
-        calendar.set(Calendar.MINUTE, 15);
+        calendar.set(Calendar.MINUTE, 23);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
 
@@ -64,15 +72,27 @@ public class MainActivity extends Activity {
             calendar.add(Calendar.DAY_OF_YEAR, 1);
         }
 
-        alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                calendar.getTimeInMillis(),
-                pendingIntent
-        );
+        try {
 
-        textView.setText(
-                "Alarm scheduled for:\n\n" +
-                calendar.getTime().toString()
-        );
+            alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.getTimeInMillis(),
+                    pendingIntent
+            );
+
+            textView.setText(
+                    "ALARM SCHEDULED\n\n" +
+                    calendar.getTime().toString()
+            );
+
+        } catch (Exception e) {
+
+            textView.setText(
+                    "ALARM ERROR:\n\n" +
+                    e.getClass().getSimpleName() +
+                    "\n\n" +
+                    e.getMessage()
+            );
+        }
     }
 }
