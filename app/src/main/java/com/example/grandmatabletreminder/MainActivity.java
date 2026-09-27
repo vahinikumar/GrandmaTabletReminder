@@ -8,7 +8,10 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends Activity {
 
@@ -19,10 +22,39 @@ public class MainActivity extends Activity {
         TextView textView = new TextView(this);
         textView.setTextSize(24);
         textView.setGravity(android.view.Gravity.CENTER);
-
         setContentView(textView);
 
+        showReceiverStatus(textView);
         scheduleAlarm(textView);
+    }
+
+    private void showReceiverStatus(TextView textView) {
+
+        long firedTime = getSharedPreferences(
+                "alarm_test",
+                MODE_PRIVATE
+        ).getLong("receiver_fired", 0);
+
+        if (firedTime == 0) {
+
+            textView.setText(
+                    "Receiver status:\n\n" +
+                    "NOT FIRED YET"
+            );
+
+        } else {
+
+            String time = new SimpleDateFormat(
+                    "dd-MM-yyyy HH:mm:ss",
+                    Locale.getDefault()
+            ).format(new Date(firedTime));
+
+            textView.setText(
+                    "Receiver status:\n\n" +
+                    "FIRED!\n\n" +
+                    "Time: " + time
+            );
+        }
     }
 
     private void scheduleAlarm(TextView textView) {
@@ -36,6 +68,7 @@ public class MainActivity extends Activity {
         }
 
         if (!alarmManager.canScheduleExactAlarms()) {
+
             textView.setText(
                     "ERROR:\nExact alarm permission is NOT allowed"
             );
@@ -47,8 +80,6 @@ public class MainActivity extends Activity {
             startActivity(intent);
             return;
         }
-
-        textView.setText("Exact alarm permission: OK\n\nScheduling...");
 
         Intent intent = new Intent(this, AlarmReceiver.class);
 
@@ -62,15 +93,11 @@ public class MainActivity extends Activity {
 
         Calendar calendar = Calendar.getInstance();
 
-        // TEST TIME: 2:10 PM
-        calendar.set(Calendar.HOUR_OF_DAY, 14);
-        calendar.set(Calendar.MINUTE, 23);
+        // TEST: 2 minutes from now
+        calendar.add(Calendar.MINUTE, 2);
+
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-
-        if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
-            calendar.add(Calendar.DAY_OF_YEAR, 1);
-        }
 
         try {
 
@@ -82,7 +109,11 @@ public class MainActivity extends Activity {
 
             textView.setText(
                     "ALARM SCHEDULED\n\n" +
-                    calendar.getTime().toString()
+                    new SimpleDateFormat(
+                            "HH:mm:ss",
+                            Locale.getDefault()
+                    ).format(calendar.getTime()) +
+                    "\n\nOpen this app AFTER the alarm time."
             );
 
         } catch (Exception e) {
