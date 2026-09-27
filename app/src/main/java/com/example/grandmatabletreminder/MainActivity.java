@@ -6,69 +6,79 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.graphics.Color;
+import android.view.Gravity;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
 
-    private TextView textView;
+    private TextView title;
+    private TextView message;
+    private Button takenButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        textView = new TextView(this);
-        textView.setTextSize(22);
-        textView.setGravity(android.view.Gravity.CENTER);
-        setContentView(textView);
+        showReminderScreen();
 
-        checkReceiver();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if (textView != null) {
-            checkReceiver();
+        if (savedInstanceState == null) {
+            scheduleAlarm();
         }
     }
 
-    private void checkReceiver() {
+    private void showReminderScreen() {
 
-        long firedTime = getSharedPreferences(
-                "alarm_test",
-                MODE_PRIVATE
-        ).getLong("receiver_fired", 0);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setGravity(Gravity.CENTER);
+        layout.setPadding(40, 40, 40, 40);
 
-        if (firedTime == 0) {
+        title = new TextView(this);
+        title.setText("💊 TABLET TIME");
+        title.setTextSize(40);
+        title.setGravity(Gravity.CENTER);
+        title.setTextColor(Color.BLACK);
 
-            textView.setText(
-                    "Receiver status:\n\n" +
-                    "NOT FIRED YET\n\n" +
-                    "Tap the screen to schedule a new test."
-            );
+        message = new TextView(this);
+        message.setText(
+                "Please take your tablet"
+        );
+        message.setTextSize(28);
+        message.setGravity(Gravity.CENTER);
+        message.setPadding(0, 40, 0, 60);
 
-            textView.setOnClickListener(v -> scheduleAlarm());
+        takenButton = new Button(this);
+        takenButton.setText("I TOOK IT");
+        takenButton.setTextSize(32);
 
-        } else {
+        LinearLayout.LayoutParams buttonParams =
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        180
+                );
 
-            String time = new SimpleDateFormat(
-                    "dd-MM-yyyy HH:mm:ss",
-                    Locale.getDefault()
-            ).format(new Date(firedTime));
+        takenButton.setLayoutParams(buttonParams);
 
-            textView.setText(
-                    "Receiver status:\n\n" +
-                    "FIRED!\n\n" +
-                    "Receiver time:\n" +
-                    time
-            );
-        }
+        takenButton.setOnClickListener(v -> {
+
+            title.setText("✓ TABLET TAKEN");
+            message.setText("Thank you!");
+
+            takenButton.setEnabled(false);
+        });
+
+        layout.addView(title);
+        layout.addView(message);
+        layout.addView(takenButton);
+
+        setContentView(layout);
     }
 
     private void scheduleAlarm() {
@@ -77,21 +87,16 @@ public class MainActivity extends Activity {
                 (AlarmManager) getSystemService(ALARM_SERVICE);
 
         if (alarmManager == null) {
-            textView.setText("ERROR:\nAlarmManager is null");
             return;
         }
 
         if (!alarmManager.canScheduleExactAlarms()) {
 
-            textView.setText(
-                    "ERROR:\nExact alarm permission is NOT allowed"
-            );
-
-            Intent intent = new Intent(
+            Intent permissionIntent = new Intent(
                     Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
             );
 
-            startActivity(intent);
+            startActivity(permissionIntent);
             return;
         }
 
@@ -100,17 +105,19 @@ public class MainActivity extends Activity {
                 AlarmReceiver.class
         );
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this,
-                100,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT
-                        | PendingIntent.FLAG_IMMUTABLE
-        );
+        PendingIntent pendingIntent =
+                PendingIntent.getBroadcast(
+                        this,
+                        100,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                                | PendingIntent.FLAG_IMMUTABLE
+                );
 
         Calendar calendar = Calendar.getInstance();
 
-        // TEST: 2 minutes from now
+        // TEMPORARY TEST:
+        // 2 minutes from now
         calendar.add(Calendar.MINUTE, 2);
 
         calendar.set(Calendar.SECOND, 0);
@@ -127,21 +134,6 @@ public class MainActivity extends Activity {
         alarmManager.setAlarmClock(
                 alarmClockInfo,
                 pendingIntent
-        );
-
-        String time = new SimpleDateFormat(
-                "HH:mm:ss",
-                Locale.getDefault()
-        ).format(calendar.getTime());
-
-        textView.setText(
-                "ALARM CLOCK SCHEDULED\n\n" +
-                "Alarm time: " +
-                time +
-                "\n\n" +
-                "Close the app.\n" +
-                "Wait until the alarm time.\n" +
-                "Then open the app again."
         );
     }
 }
